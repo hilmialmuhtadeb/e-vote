@@ -14,9 +14,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'name' => 'Test User',
-            'ktp_number' => '1234567890123456',
-            'phone_number' => '081234567890',
+            'name' => 'Hilmi Al Muhtade',
+            'ktp_number' => '3578303006010001',
+            'phone_number' => '089601628845',
             'status' => 'active',
         ]);
     }

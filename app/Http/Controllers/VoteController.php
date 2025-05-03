@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Candidate;
 use Illuminate\Http\Request;
 use App\Models\Otp;
 use App\Models\Vote;
@@ -10,18 +11,22 @@ use Illuminate\Support\Facades\Auth;
 
 class VoteController extends Controller
 {
-    public function index()
+    public function requestOtp(Request $request)
     {
-        if (Auth::user()->status !== 'active') {
+        $user = User::where('ktp_number', $request->ktp_number)->first();
+
+        if (!$user) {
+            return back()->with('error', 'KTP tidak ditemukan.');
+        }
+        
+        if ($user->votes) {
+            return back()->with('error', 'Anda sudah melakukan voting.');
+        }
+
+        if ($user->status !== 'active') {
             return back()->with('error', 'Akun Anda belum aktif.');
         }
 
-        return view('vote.index');
-    }
-
-    public function requestOtp()
-    {
-        $user = Auth::user();
         $otp = rand(100000, 999999);
 
         Otp::create([
@@ -30,10 +35,28 @@ class VoteController extends Controller
             'expired_at' => now()->addMinutes(5),
         ]);
 
-        // Simulasi kirim SMS
         logger("OTP untuk {$user->phone_number}: $otp");
 
-        return back()->with('message', 'Kode OTP telah dikirim.');
+        return redirect(route('otp.input'))->with('message', 'Kode OTP telah dikirim.');
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        // todo: otp verification
+        
+        return redirect('vote.submission');
+    }
+
+    public function inputOtp()
+    {
+        return view('vote.otp');
+    }
+
+    public function submission()
+    {
+        $candidates = Candidate::all();
+        
+        return view('vote.submission', compact('candidates'));
     }
 
     public function submitVote(Request $request)
