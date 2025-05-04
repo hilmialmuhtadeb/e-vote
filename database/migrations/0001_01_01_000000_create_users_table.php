@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('ktp_number')->unique();
+            $table->string('kta_number')->unique();
             $table->string('phone_number');
             $table->enum('status', ['active', 'inactive'])->default('inactive');
             $table->timestamps();
