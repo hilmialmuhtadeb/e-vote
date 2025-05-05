@@ -8,6 +8,7 @@ use App\Models\Otp;
 use App\Models\Vote;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Services\FonnteService;
 
 class VoteController extends Controller
 {
@@ -28,7 +29,13 @@ class VoteController extends Controller
         }
 
         $otp = rand(100000, 999999);
-
+        
+        try {
+            $this->sendOtp($user->phone_number, $otp);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengirim OTP. Silakan hubungi admin.');
+        }
+        
         Otp::create([
             'user_id' => $user->id,
             'otp_code' => $otp,
@@ -146,5 +153,20 @@ class VoteController extends Controller
     public function success()
     {
         return view('vote.success');
+    }
+
+    public function sendOtp($phoneNumber, $otp)
+    {
+        $fonnte = new FonnteService();
+        $phoneNumber = $phoneNumber;
+        $message = 'Kode OTP kamu adalah: ' . $otp;
+
+        $response = $fonnte->sendMessage($phoneNumber, $message);
+
+        if ($response['status'] == true) {
+            return 'Pesan berhasil dikirim!';
+        } else {
+            return 'Gagal kirim: ' . $response['reason'] ?? 'unknown error';
+        }
     }
 }
